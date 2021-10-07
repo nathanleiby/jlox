@@ -2,4 +2,3 @@
 (( )){} // grouping stuff
 !*+-/=<> <= == // operators
 "gello" + "foo" + 123;
-for
