@@ -1,1 +1,5 @@
-1 + 3;
+// this is a comment
+(( )){} // grouping stuff
+!*+-/=<> <= == // operators
+"gello" + "foo" + 123;
+for
