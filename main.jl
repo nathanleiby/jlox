@@ -1,8 +1,8 @@
 include("./token.jl")
 include("./scanner.jl")
 include("./parser.jl")
+include("./interpreter.jl")
 
-hadError = false
 
 function main()
     if length(ARGS) > 1
@@ -37,19 +37,20 @@ end
 
 function run(source::String)
     tokens = scanTokens(source);
-    for t in tokens
-        println(t)
-    end
+    # for t in tokens
+    #     println(t)
+    # end
 
     expr = parseTokens(tokens)
 
+    # TODO:
     # if (hadError) return;
 
-    print(expr)
+    # print(expr)
+    interpret(expr)
 
     # TODO: AstPrinter
     # System.out.println(new AstPrinter().print(expression));
 end
 
 main()
-
