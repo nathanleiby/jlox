@@ -2,7 +2,9 @@ include("./token.jl")
 include("./scanner.jl")
 include("./parser.jl")
 include("./interpreter.jl")
-
+include("./expressions.jl")
+include("./errors.jl")
+include("./debug.jl")
 
 function main()
     if length(ARGS) > 1

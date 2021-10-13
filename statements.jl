@@ -8,6 +8,11 @@ struct ExpressionStmt <: Stmt
     expression::Expr
 end
 
+struct VarStmt <: Stmt
+    name::Token
+    expression::Expr
+end
+
 # TODO: Unused so far
 struct RuntimeError  <: Exception
     token::Token
@@ -37,4 +42,10 @@ function visit(stmt::PrintStmt)
     value = evaluate(stmt.expression)
     println(stringify(value));
     return nothing
+end
+
+function visit(stmt::VarStmt)
+    # TODO
+    val = evaluate(stmt.expression)
+    return val
 end

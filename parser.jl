@@ -1,6 +1,7 @@
 include("./expressions.jl")
 include("./token.jl")
-include("errors.jl")
+include("./errors.jl")
+include("./debug.jl")
 
 function parseTokens(tokens)::Vector{Stmt}
     current = 1
@@ -109,19 +110,20 @@ function parseTokens(tokens)::Vector{Stmt}
     end
 
     function primary()::Expr
+        # literal
         if match(FALSE)
             return Literal(false)
         elseif match(TRUE)
             return Literal(true)
         elseif match(NIL)
             return Literal(nothing)
-        end
-
-        if match(NUMBER, STRING)
+        elseif match(NUMBER, STRING)
             return Literal(previous().literal)
-        end
-
-        if match(LEFT_PAREN)
+        # variable
+        elseif match(IDENTIFIER)
+            return Variable(previous())
+        # grouping
+        elseif match(LEFT_PAREN)
             expr = expression()
             consume(RIGHT_PAREN, "Expect ')' after expression.")
             return Grouping(expr)
@@ -174,6 +176,18 @@ function parseTokens(tokens)::Vector{Stmt}
         return expressionStatement()
     end
 
+    function declaration()
+        try
+            if match(VAR)
+                return varDeclaration()
+            end
+            return statement()
+        catch
+            synchronize()
+            return nothing
+        end
+    end
+
     function printStatement()
         value = expression()
         consume(SEMICOLON, "Expect ';' after value.")
@@ -186,12 +200,29 @@ function parseTokens(tokens)::Vector{Stmt}
         return ExpressionStmt(expr)
     end
 
+    function varDeclaration()
+        q("varDeclaration")
+        name = consume(IDENTIFIER, "Expect variable name.")
+        q("varDeclaration name=$name")
+
+        initializer = nothing
+        if match(EQUAL)
+            initializer = expression()
+        end
+        q("varDeclaration initializer=$initializer")
+
+        consume(SEMICOLON, "Expect ';' after variable declaration")
+        s = VarStmt(name, initializer)
+        q("varDeclaration stmt=$s")
+        return s
+    end
+
     # core logic
     statements = []
     while !isAtEnd()
-        s = statement()
-        push!(statements, s)
+        push!(statements, declaration())
     end
+
 
     return statements
 end

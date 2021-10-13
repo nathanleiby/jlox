@@ -19,6 +19,10 @@ struct Unary <: Expr
     right::Any
 end
 
+struct Variable <: Expr
+    value::Token
+end
+
 function evaluate(expr::Expr)
     visit(expr)
 end
@@ -42,6 +46,10 @@ function visit(unary::Unary)
     end
 
     throw("unreachable")
+end
+
+function visit(var::Variable)
+    q("TODO")
 end
 
 function visit(binary::Binary)
