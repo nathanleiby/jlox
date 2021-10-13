@@ -1,18 +1,26 @@
-include("expressions.jl")
+include("./expressions.jl")
 
+abstract type Stmt end
+
+struct PrintStmt <: Stmt
+    expression::Expr
+end
+
+struct ExpressionStmt <: Stmt
+    expression::Expr
+end
 struct RuntimeError  <: Exception
     token::Token
 end
 
-function interpret(expression::Expr)
-    # try
-    value = evaluate(expression)
-    println(value)
-    return true
-    # catch e
-    #     println("Runtime Error:", e)
-    #     return false # TODO: hadRuntimeError
-    # end
+function interpret(statements::Vector{Stmt})
+    try
+        for s in statements
+            execute(s)
+        end
+    catch e
+        throw(e) # TODO: hadRuntimeError
+    end
 end
 
 function stringify(obj)
@@ -24,6 +32,14 @@ function stringify(obj)
     end
 
     return obj
+end
+
+
+####################
+## expressions
+####################
+function evaluate(expr::Expr)
+    visit(expr)
 end
 
 function visit(literal::Literal)
@@ -59,7 +75,6 @@ function visit(binary::Binary)
     elseif t == STAR
         return left * right
     elseif t == PLUS
-        # TODO: Could concat strings, too
         if isa(left, Number) && isa(right, Number)
             return left + right
         elseif isa(left, String) && isa(right, String)
@@ -117,8 +132,21 @@ function checkNumberOperands(operator::Token, left::Any, right::Any)
     throw(RuntimeError(operator))
 end
 
-function evaluate(expr::Expr)
-    # TODO
-    # accept(expr)
-    visit(expr)
+
+####################
+## statements
+####################
+function execute(stmt::Stmt)
+    visit(stmt)
+end
+
+function visit(stmt::ExpressionStmt)
+    evaluate(stmt.expression)
+    return nothing
+end
+
+function visit(stmt::PrintStmt)
+    value = evaluate(stmt.expression)
+    println(stringify(value));
+    return nothing
 end

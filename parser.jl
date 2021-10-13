@@ -2,7 +2,7 @@ include("./expressions.jl")
 include("./token.jl")
 include("errors.jl")
 
-function parseTokens(tokens)
+function parseTokens(tokens)::Vector{Stmt}
     current = 1
 
     # helper functions
@@ -42,10 +42,12 @@ function parseTokens(tokens)
     end
 
     function peek()::Token
-        return tokens[current]
+        # return tokens[current - 1]
+        return tokens[current] # TODO
     end
 
     function previous()::Token
+        # return tokens[current - 2]
         return tokens[current - 1]
     end
 
@@ -163,11 +165,33 @@ function parseTokens(tokens)
         end
     end
 
+    # statements
+    function statement()
+        if (match(PRINT))
+            return printStatement()
+        end
+
+        return expressionStatement()
+    end
+
+    function printStatement()
+        value = expression()
+        consume(SEMICOLON, "Expect ';' after value.")
+        return PrintStmt(value)
+    end
+
+    function expressionStatement()
+        expr = expression()
+        consume(SEMICOLON, "Expect ';' after expression.")
+        return ExpressionStmt(expr)
+    end
 
     # core logic
-    try
-        return expression()
-    catch
-        return nothing
+    statements = []
+    while !isAtEnd()
+        s = statement()
+        push!(statements, s)
     end
+
+    return statements
 end

@@ -41,13 +41,13 @@ function run(source::String)
     #     println(t)
     # end
 
-    expr = parseTokens(tokens)
+    statements = parseTokens(tokens)
 
     # TODO:
     # if (hadError) return;
 
     # print(expr)
-    interpret(expr)
+    interpret(statements)
 
     # TODO: AstPrinter
     # System.out.println(new AstPrinter().print(expression));

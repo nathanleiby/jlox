@@ -1,0 +1,3 @@
+- try modeling all Lox types
+  - e.g. base object type, etc
+- Add some kind of debug logging, so I can see what comes from the program vs what comes from the language implementation

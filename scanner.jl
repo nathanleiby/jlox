@@ -84,7 +84,7 @@ function scanTokens(source::String)
 
     function peek()::Char
         if isAtEnd()
-            return '\0'
+            return '\0' # TODO: is working?
         else
             return source[current]
         end
@@ -160,6 +160,9 @@ function scanTokens(source::String)
         start = current;
         scanToken();
     end
+
+    eof = Token(EOF, "", nothing, line)
+    push!(tokens, eof)
 
     return tokens
 end
