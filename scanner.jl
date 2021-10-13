@@ -19,7 +19,8 @@ function scanTokens(source::String)
     end
 
     function addToken(tt::TokenType, literal::Any)
-        push!(tokens, Token(tt, "", literal, line))
+        text = source[start:current - 1]
+        push!(tokens, Token(tt, text, literal, line))
     end
 
     function scanStringToken()
@@ -68,7 +69,8 @@ function scanTokens(source::String)
         end
         text = source[start:current - 1]
         type = get(keywords, text, IDENTIFIER)
-        addToken(type, text);
+        # addToken(type, text);
+        addToken(type)
     end
 
     function match(c::Char)::Bool

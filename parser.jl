@@ -8,7 +8,7 @@ function parseTokens(tokens)::Vector{Stmt}
 
     # helper functions
 
-    function expression()::Expr
+    function expression()::LoxExpr
         return equality()
     end
 
@@ -52,7 +52,7 @@ function parseTokens(tokens)::Vector{Stmt}
         return tokens[current - 1]
     end
 
-    function equality()::Expr
+    function equality()::LoxExpr
         expr = comparison()
 
         while (match(BANG_EQUAL, EQUAL_EQUAL))
@@ -64,7 +64,7 @@ function parseTokens(tokens)::Vector{Stmt}
         return expr
     end
 
-    function comparison()::Expr
+    function comparison()::LoxExpr
         expr = term()
         while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL))
             op = previous()
@@ -75,7 +75,7 @@ function parseTokens(tokens)::Vector{Stmt}
         return expr
     end
 
-    function term()::Expr
+    function term()::LoxExpr
         expr = factor()
 
         while (match(MINUS, PLUS))
@@ -87,7 +87,7 @@ function parseTokens(tokens)::Vector{Stmt}
         return expr
     end
 
-    function factor()::Expr
+    function factor()::LoxExpr
         expr = unary()
 
         while match(SLASH, STAR)
@@ -99,7 +99,7 @@ function parseTokens(tokens)::Vector{Stmt}
         return expr
     end
 
-    function unary()::Expr
+    function unary()::LoxExpr
         if match(MINUS, BANG)
             op = previous()
             right = unary()
@@ -109,7 +109,7 @@ function parseTokens(tokens)::Vector{Stmt}
         return primary()
     end
 
-    function primary()::Expr
+    function primary()::LoxExpr
         # literal
         if match(FALSE)
             return Literal(false)
@@ -182,7 +182,12 @@ function parseTokens(tokens)::Vector{Stmt}
                 return varDeclaration()
             end
             return statement()
-        catch
+        catch e
+            # TODO: for debugging
+            q("Exception in declaration:", e)
+            throw(e)
+            # ---
+
             synchronize()
             return nothing
         end
@@ -201,20 +206,11 @@ function parseTokens(tokens)::Vector{Stmt}
     end
 
     function varDeclaration()
-        q("varDeclaration")
         name = consume(IDENTIFIER, "Expect variable name.")
-        q("varDeclaration name=$name")
-
-        initializer = nothing
-        if match(EQUAL)
-            initializer = expression()
-        end
-        q("varDeclaration initializer=$initializer")
+        initializer = match(EQUAL) ? expression() : nothing
 
         consume(SEMICOLON, "Expect ';' after variable declaration")
-        s = VarStmt(name, initializer)
-        q("varDeclaration stmt=$s")
-        return s
+        return VarStmt(name, initializer)
     end
 
     # core logic
