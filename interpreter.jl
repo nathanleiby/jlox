@@ -5,10 +5,15 @@ include("./token.jl")
 ## expression types ##
 abstract type LoxExpr end
 
+struct Assign <: LoxExpr
+    name::Token
+    value::LoxExpr
+end
+
 struct Binary <: LoxExpr
-    left::Any
+    left::LoxExpr
     operator::Token
-    right::Any
+    right::LoxExpr
 end
 
 struct Grouping <: LoxExpr
@@ -21,11 +26,11 @@ end
 
 struct Unary <: LoxExpr
     operator::Token
-    right::Any
+    right::LoxExpr
 end
 
 struct Variable <: LoxExpr
-    token::Token
+    name::Token
 end
 
 ## statement types ##
@@ -82,7 +87,13 @@ function interpret(statements::Vector{Stmt})
     end
 
     function visit(var::Variable)
-        return get(environment, var.token)
+        return get(environment, var.name)
+    end
+
+    function visit(expr::Assign)
+        value = evaluate(expr.value)
+        assignenv(environment, expr.name, value)
+        return value
     end
 
     function visit(binary::Binary)
@@ -169,8 +180,9 @@ function interpret(statements::Vector{Stmt})
         if obj === nothing
             return "nil"
         elseif isa(obj, Number)
-        # TODO: trim trailing .0, if neede
-        return obj
+            if obj - floor(obj) == 0
+                return Integer(floor(obj))
+            end
         end
 
         return obj
@@ -184,7 +196,7 @@ function interpret(statements::Vector{Stmt})
 
     function visit(stmt::VarStmt)
         value = stmt.initializer !== nothing ? evaluate(stmt.initializer) : nothing
-        defineenv(environment, stmt.name.lexeme, value)
+        defineenv(environment, stmt.name, value)
         return nothing
     end
 

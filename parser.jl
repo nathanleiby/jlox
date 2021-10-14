@@ -8,10 +8,6 @@ function parseTokens(tokens)::Vector{Stmt}
 
     # helper functions
 
-    function expression()::LoxExpr
-        return equality()
-    end
-
     # TODO: variable type?
     # function match(tokens::Vararg{TokenType,N})
     function match(types...)
@@ -50,6 +46,30 @@ function parseTokens(tokens)::Vector{Stmt}
     function previous()::Token
         # return tokens[current - 2]
         return tokens[current - 1]
+    end
+
+    ####################
+    ## the grammar
+    ####################
+    function expression()::LoxExpr
+        return assignment()
+    end
+
+    function assignment()::LoxExpr
+        expr = equality()
+        if match(EQUAL)
+            equals = previous()
+            value = assignment() # recursive; this makes assignment right-associative
+
+            if isa(expr, Variable)
+                name = expr.name
+                return Assign(name, value)
+            end
+
+            error(equals, "Invalid assignment target.")
+        end
+
+        return expr
     end
 
     function equality()::LoxExpr

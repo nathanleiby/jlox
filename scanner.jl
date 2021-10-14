@@ -93,7 +93,7 @@ function scanTokens(source::String)
     end
 
     function peekNext()::Char
-        if current + 1 >= len(source)
+        if current + 1 >= length(source)
             return '\0'
         else
             return source[current + 1]
