@@ -191,6 +191,9 @@ function parseTokens(tokens)::Vector{Stmt}
     function statement()
         if (match(PRINT))
             return printStatement()
+        elseif match(LEFT_BRACE)
+            bs = blockStatement()
+            return bs
         end
 
         return expressionStatement()
@@ -211,6 +214,18 @@ function parseTokens(tokens)::Vector{Stmt}
             synchronize()
             return nothing
         end
+    end
+
+    function blockStatement()
+        # Lol I had a bug where I used `statements` here and had a variable
+        # shadowing/scope issue .. while implementing scope/shadowing for 8.5!
+        bsStatements = []
+        while !check(RIGHT_BRACE) && !isAtEnd()
+            push!(bsStatements, declaration())
+        end
+
+        consume(RIGHT_BRACE, "Expect '}' after block")
+        BlockStmt(bsStatements)
     end
 
     function printStatement()
@@ -236,7 +251,8 @@ function parseTokens(tokens)::Vector{Stmt}
     # core logic
     statements = []
     while !isAtEnd()
-        push!(statements, declaration())
+        d = declaration()
+        push!(statements, d)
     end
 
 

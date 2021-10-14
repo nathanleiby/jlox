@@ -2,8 +2,10 @@ include("./statements.jl")
 include("./environment.jl")
 include("./token.jl")
 
-## expression types ##
 abstract type LoxExpr end
+abstract type Stmt end
+
+## expression types ##
 
 struct Assign <: LoxExpr
     name::Token
@@ -33,9 +35,11 @@ struct Variable <: LoxExpr
     name::Token
 end
 
-## statement types ##
+struct Block <: LoxExpr
+    statements::Vector{Stmt}
+end
 
-abstract type Stmt end
+## statement types ##
 
 struct PrintStmt <: Stmt
     expression::LoxExpr
@@ -50,6 +54,10 @@ struct VarStmt <: Stmt
     initializer::LoxExpr
 end
 
+struct BlockStmt <: Stmt
+    statements::Vector{Stmt}
+end
+
 struct RuntimeError  <: Exception
     token::Token
     details::String
@@ -57,7 +65,7 @@ end
 
 
 function interpret(statements::Vector{Stmt})
-    environment = Environment(Dict())
+    environment = Environment()
 
     ## expressions ##
 
@@ -198,6 +206,27 @@ function interpret(statements::Vector{Stmt})
         value = stmt.initializer !== nothing ? evaluate(stmt.initializer) : nothing
         defineenv(environment, stmt.name, value)
         return nothing
+    end
+
+    function visit(stmt::BlockStmt)
+        executeBlock(stmt.statements, Environment(environment))
+        return nothing
+    end
+
+    # TODO: This was the core logic before -- could we call there too?
+    function executeBlock(statements::Vector{Stmt}, env::Environment)
+        previous = environment
+        try
+            environment = env
+            for s in statements
+                execute(s)
+            end
+        catch err
+            environment = previous
+            throw(err)
+        end
+
+        environment = previous
     end
 
     ## Core logic
