@@ -18,7 +18,7 @@ function main()
 end
 
 function runFile(path)
-    println("Running file ", path, "...")
+    # println("Running file ", path, "...")
     open(path, "r") do f
         data = read(f, String)
         run(data)
