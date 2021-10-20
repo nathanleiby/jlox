@@ -1,7 +1,6 @@
 #!/bin/bash
 cmd='julia main.jl'
 
-testcase=statements8.5.lox
 specdir='./test/specs'
 
 for spec in `ls $specdir | grep .lox\$`; do

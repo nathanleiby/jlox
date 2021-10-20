@@ -189,7 +189,9 @@ function parseTokens(tokens)::Vector{Stmt}
 
     # statements
     function statement()
-        if (match(PRINT))
+        if match(IF)
+            return ifStatement()
+        elseif match(PRINT)
             return printStatement()
         elseif match(LEFT_BRACE)
             bs = blockStatement()
@@ -226,6 +228,21 @@ function parseTokens(tokens)::Vector{Stmt}
 
         consume(RIGHT_BRACE, "Expect '}' after block")
         BlockStmt(bsStatements)
+    end
+
+    function ifStatement()
+        consume(LEFT_PAREN, "Expect '(' after 'if'.")
+        condition = expression()
+        consume(RIGHT_PAREN, "Expect ')' after if condition.")
+
+        thenBranch = statement()
+        elseBranch = nothing
+
+        if match(ELSE)
+            elseBranch = statement()
+        end
+
+        return IfStmt(condition, thenBranch, elseBranch)
     end
 
     function printStatement()

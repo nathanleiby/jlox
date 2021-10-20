@@ -49,6 +49,12 @@ struct ExpressionStmt <: Stmt
     expression::LoxExpr
 end
 
+struct IfStmt <: Stmt
+    condition::LoxExpr
+    thenBranch::Stmt
+    elseBranch::Stmt
+end
+
 struct VarStmt <: Stmt
     name::Token
     initializer::LoxExpr
@@ -210,6 +216,15 @@ function interpret(statements::Vector{Stmt})
 
     function visit(stmt::BlockStmt)
         executeBlock(stmt.statements, Environment(environment))
+        return nothing
+    end
+
+    function visit(stmt::IfStmt)
+        if isTruthy(evaluate(stmt.condition))
+            execute(stmt.thenBranch)
+        elseif stmt.elseBranch !== nothing
+            execute(stmt.elseBranch)
+        end
         return nothing
     end
 
