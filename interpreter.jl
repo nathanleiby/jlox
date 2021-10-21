@@ -31,6 +31,13 @@ struct Unary <: LoxExpr
     right::LoxExpr
 end
 
+
+struct Logical <: LoxExpr
+    left::LoxExpr
+    operator::Token
+    right::LoxExpr
+end
+
 struct Variable <: LoxExpr
     name::Token
 end
@@ -108,6 +115,23 @@ function interpret(statements::Vector{Stmt})
         value = evaluate(expr.value)
         assignenv(environment, expr.name, value)
         return value
+    end
+
+    function visit(expr::Logical)
+        left = evaluate(expr.left)
+
+        # check if we can short circuit
+        if expr.operator.type == OR
+            if isTruthy(left)
+                return left
+            end
+        else # it's an AND
+            if !isTruthy(left)
+                return left
+            end
+        end
+
+        return evaluate(expr.right)
     end
 
     function visit(binary::Binary)

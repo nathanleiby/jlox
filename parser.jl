@@ -56,7 +56,7 @@ function parseTokens(tokens)::Vector{Stmt}
     end
 
     function assignment()::LoxExpr
-        expr = equality()
+        expr = or()
         if match(EQUAL)
             equals = previous()
             value = assignment() # recursive; this makes assignment right-associative
@@ -67,6 +67,30 @@ function parseTokens(tokens)::Vector{Stmt}
             end
 
             error(equals, "Invalid assignment target.")
+        end
+
+        return expr
+    end
+
+    function or()::LoxExpr
+        expr = and()
+
+        while match(OR)
+            op = previous()
+            right = and()
+            expr = Logical(expr, op, right)
+        end
+
+        return expr
+    end
+
+    function and()::LoxExpr
+        expr = equality()
+
+        while match(AND)
+            op = previous()
+            right = equality()
+            expr = Logical(expr, op, right)
         end
 
         return expr
