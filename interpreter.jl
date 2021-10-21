@@ -48,8 +48,8 @@ end
 
 ## statement types ##
 
-struct PrintStmt <: Stmt
-    expression::LoxExpr
+struct BlockStmt <: Stmt
+    statements::Vector{Stmt}
 end
 
 struct ExpressionStmt <: Stmt
@@ -62,13 +62,18 @@ struct IfStmt <: Stmt
     elseBranch::Stmt
 end
 
+struct PrintStmt <: Stmt
+    expression::LoxExpr
+end
+
 struct VarStmt <: Stmt
     name::Token
     initializer::LoxExpr
 end
 
-struct BlockStmt <: Stmt
-    statements::Vector{Stmt}
+struct WhileStmt <: Stmt
+    name::Token
+    initializer::LoxExpr
 end
 
 struct RuntimeError  <: Exception
@@ -80,7 +85,9 @@ end
 function interpret(statements::Vector{Stmt})
     environment = Environment()
 
+    #################
     ## expressions ##
+    #################
 
     function evaluate(expr::LoxExpr)
         visit(expr)
@@ -203,7 +210,9 @@ function interpret(statements::Vector{Stmt})
         throw(RuntimeError(operator))
     end
 
+    ################
     ## statements ##
+    ################
 
     function execute(stmt::Stmt)
         visit(stmt)
@@ -248,6 +257,13 @@ function interpret(statements::Vector{Stmt})
             execute(stmt.thenBranch)
         elseif stmt.elseBranch !== nothing
             execute(stmt.elseBranch)
+        end
+        return nothing
+    end
+
+    function visit(stmt::WhileStmt)
+        while isTruthy(evaluate(stmt.condition))
+            execute(stmt.body)
         end
         return nothing
     end

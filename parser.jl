@@ -217,6 +217,8 @@ function parseTokens(tokens)::Vector{Stmt}
             return ifStatement()
         elseif match(PRINT)
             return printStatement()
+        elseif match(WHILE)
+            return whileStatement()
         elseif match(LEFT_BRACE)
             bs = blockStatement()
             return bs
@@ -267,6 +269,16 @@ function parseTokens(tokens)::Vector{Stmt}
         end
 
         return IfStmt(condition, thenBranch, elseBranch)
+    end
+
+    function whileStatement()
+        consume(LEFT_PAREN, "Expect '(' after 'if'.")
+        condition = expression()
+        consume(RIGHT_PAREN, "Expect ')' after if condition.")
+
+        body = statement()
+
+        return WhileStmt(condition, body)
     end
 
     function printStatement()
