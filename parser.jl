@@ -215,6 +215,8 @@ function parseTokens(tokens)::Vector{Stmt}
     function statement()
         if match(IF)
             return ifStatement()
+        elseif match(FOR)
+            return forStatement()
         elseif match(PRINT)
             return printStatement()
         elseif match(WHILE)
@@ -272,13 +274,59 @@ function parseTokens(tokens)::Vector{Stmt}
     end
 
     function whileStatement()
-        consume(LEFT_PAREN, "Expect '(' after 'if'.")
+        consume(LEFT_PAREN, "Expect '(' after 'while'.")
         condition = expression()
-        consume(RIGHT_PAREN, "Expect ')' after if condition.")
+        consume(RIGHT_PAREN, "Expect ')' after while condition.")
 
         body = statement()
 
         return WhileStmt(condition, body)
+    end
+
+    function forStatement()
+        consume(LEFT_PAREN, "Expect '(' after 'for'.")
+
+        initializer = nothing
+        if match(SEMICOLON)
+            initializer = nothing
+        elseif match(VAR)
+            initializer = varDeclaration()
+        else
+            initializer = expressionStatement()
+        end
+
+        condition = nothing
+        if !check(SEMICOLON)
+            condition = expression()
+        end
+        consume(SEMICOLON, "Expect ';' after loop condition.")
+
+        increment = nothing
+        if !check(RIGHT_PAREN)
+            increment = expression()
+        end
+        consume(RIGHT_PAREN, "Expect ')' after for clauses.")
+
+        body = statement()
+
+        # desugar, converting the "for" syntax into a "while"
+        if increment !== nothing
+            # add an increment after whatever is inside the for's  body
+            body = BlockStmt([body, ExpressionStmt(increment)])
+        end
+
+        if condition === nothing
+            # if no condition, then the condition is always true
+            condition = Literal(true)
+        end
+        body = WhileStmt(condition, body)
+
+        if initializer !== nothing
+            # run the initializer once, then run our WhileStmt
+            body = BlockStmt([initializer, body])
+        end
+
+        return body
     end
 
     function printStatement()

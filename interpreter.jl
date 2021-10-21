@@ -68,12 +68,12 @@ end
 
 struct VarStmt <: Stmt
     name::Token
-    initializer::LoxExpr
+    initializer::Union{LoxExpr,Nothing}
 end
 
 struct WhileStmt <: Stmt
-    name::Token
-    initializer::LoxExpr
+    condition::LoxExpr
+    body::Stmt
 end
 
 struct RuntimeError  <: Exception
