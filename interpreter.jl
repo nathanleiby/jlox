@@ -24,6 +24,12 @@ struct Call <: LoxExpr
     arguments::Vector{LoxExpr}
 end
 
+struct FnExpr <: LoxExpr
+    name::Token
+    params::Vector{Token}
+    body::Vector{Stmt}
+end
+
 struct Grouping <: LoxExpr
     expression::LoxExpr
 end
@@ -62,10 +68,16 @@ struct ExpressionStmt <: Stmt
     expression::LoxExpr
 end
 
+struct FnStmt <: Stmt
+    name::Token
+    params::Vector{Token}
+    body::Vector{Stmt}
+end
+
 struct IfStmt <: Stmt
     condition::LoxExpr
     thenBranch::Stmt
-    elseBranch::Stmt
+    elseBranch::Union{Stmt,Nothing}
 end
 
 struct PrintStmt <: Stmt
@@ -88,10 +100,18 @@ struct RuntimeError  <: Exception
     details::String
 end
 
-struct LoxCallable
-    arity::Int # TODO: Could compute this in Julia?
+struct NativeCallable
+    arity::Int
     callee::Function
 end
+
+struct LoxCallable
+    declaration::FnStmt
+end
+
+# function arity(lc::LoxCallable)
+#     return length(lc.declaration.params)
+# end
 
 function interpret(statements::Vector{Stmt})
     globals = Environment()
@@ -133,7 +153,8 @@ function interpret(statements::Vector{Stmt})
             push!(args, evaluate(arg))
         end
 
-        if typeof(callee) != LoxFn
+        ctype = typeof(callee)
+        if ctype != LoxCallable && ctype != NativeCallable
             throw(RuntimeError(expr.paren, "Can only call functions and classes."))
         end
 
@@ -141,7 +162,7 @@ function interpret(statements::Vector{Stmt})
             throw(RuntimeError(expr.paren, "Expected $(callee.arity) arguments but got $(length(args))."))
         end
 
-        return call(loxfn, args)
+        return call(callee, args)
     end
 
     function visit(var::Variable)
@@ -298,6 +319,12 @@ function interpret(statements::Vector{Stmt})
         return nothing
     end
 
+    function visit(stmt::FnStmt)
+        fn = LoxCallable(stmt)
+        defineenv(environment, stmt.name.lexeme, fn)
+        return nothing
+    end
+
     # TODO: This was the core logic before -- could we call there too?
     function executeBlock(statements::Vector{Stmt}, env::Environment)
         previous = environment
@@ -314,12 +341,37 @@ function interpret(statements::Vector{Stmt})
         environment = previous
     end
 
+    #################
+    ## Callables
+    #################
+    function call(callable::LoxCallable, args::Vector{Any})
+        env = Environment(globals)
+        for (idx, param) in enumerate(callable.declaration.params)
+            defineenv(env, param.lexeme, args[idx])
+        end
+
+        executeBlock(callable.declaration.body, env)
+        return nothing
+    end
+
+    function arity(callable::LoxCallable)
+        return length(callable.declaration.params)
+    end
+
+    function call(callable::NativeCallable, args::Vector{Any})
+        return callable.callee(args)
+    end
+
+    function arity(callable::NativeCallable)
+        return callable.arity
+    end
+
     ######################
     # Core
     ######################
 
     ## Setup Global fns
-    defineenv(globals, "clock", LoxCallable(0, time))
+    defineenv(globals, "clock", NativeCallable(0, time))
 
     ## Main logic
     try

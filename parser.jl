@@ -159,9 +159,6 @@ function parseTokens(tokens)::Vector{Stmt}
         while true
             if match(LEFT_PAREN)
                 expr = finishCall(expr)
-            # elseif match(DOT)
-            #     name = consume(IDENTIFIER, "Expect property name after '.'.")
-            #     expr = Get(expr, name)
             else
                 break
             end
@@ -170,7 +167,7 @@ function parseTokens(tokens)::Vector{Stmt}
         return expr
     end
 
-    function finishCall()::LoxExpr
+    function finishCall(expr)::LoxExpr
         args = []
 
         if !check(RIGHT_PAREN)
@@ -179,7 +176,7 @@ function parseTokens(tokens)::Vector{Stmt}
                     error(peek(), "Cannot have more than 255 arguments.")
                 end
 
-                args.push(expression())
+                push!(args, expression())
 
                 if !match(COMMA)
                     break
@@ -269,6 +266,9 @@ function parseTokens(tokens)::Vector{Stmt}
 
     function declaration()
         try
+            if match(FUN)
+                return functionDeclaration("function")
+            end
             if match(VAR)
                 return varDeclaration()
             end
@@ -377,6 +377,35 @@ function parseTokens(tokens)::Vector{Stmt}
         expr = expression()
         consume(SEMICOLON, "Expect ';' after expression.")
         return ExpressionStmt(expr)
+    end
+
+    function functionDeclaration(kind::String)
+        # parse function's name
+        name = consume(IDENTIFIER, "Expect $kind name.")
+
+        # parse function's arguments
+        consume(LEFT_PAREN, "Expect '(' after $kind name.")
+        params = []
+        if !check(RIGHT_PAREN)
+            while true
+                if length(params) > 255
+                    error(peek(), "Cannot have more than 255 $kind parameters.")
+                end
+
+                push!(params, consume(IDENTIFIER, "Expect $kind parameter name."))
+
+                if !match(COMMA)
+                    break
+                end
+            end
+        end
+        consume(RIGHT_PAREN, "Expect ')' after $kind parameters.")
+
+        # parse function's body
+        consume(LEFT_BRACE, "Expect '{' before $kind body.")
+        body = blockStatement()
+
+        return FnStmt(name, params, body.statements)
     end
 
     function varDeclaration()
