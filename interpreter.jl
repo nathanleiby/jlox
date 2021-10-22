@@ -82,14 +82,20 @@ struct WhileStmt <: Stmt
     body::Stmt
 end
 
+## Other
 struct RuntimeError  <: Exception
     token::Token
     details::String
 end
 
+struct LoxCallable
+    arity::Int # TODO: Could compute this in Julia?
+    callee::Function
+end
 
 function interpret(statements::Vector{Stmt})
-    environment = Environment()
+    globals = Environment()
+    environment = globals
 
     #################
     ## expressions ##
@@ -224,14 +230,14 @@ function interpret(statements::Vector{Stmt})
         if isa(operand, Number)
             return
         end
-        throw(RuntimeError(operator))
+        throw(RuntimeError(operator, ""))
     end
 
     function checkNumberOperands(operator::Token, left::Any, right::Any)
         if isa(left, Number) && isa(right, Number)
             return
         end
-        throw(RuntimeError(operator))
+        throw(RuntimeError(operator, ""))
     end
 
     ################
@@ -308,7 +314,14 @@ function interpret(statements::Vector{Stmt})
         environment = previous
     end
 
-    ## Core logic
+    ######################
+    # Core
+    ######################
+
+    ## Setup Global fns
+    defineenv(globals, "clock", LoxCallable(0, time))
+
+    ## Main logic
     try
         for s in statements
             execute(s)

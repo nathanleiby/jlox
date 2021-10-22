@@ -6,6 +6,11 @@ end
 Environment() = Environment(Dict(), nothing)
 Environment(enclosing::Environment) = Environment(Dict(), enclosing)
 
+
+function defineenv(env::Environment, name::String, value)
+    env.Values[name] = value
+end
+
 function defineenv(env::Environment, name::Token, value)
     # Currently, this works...
     #     var a = "before";
