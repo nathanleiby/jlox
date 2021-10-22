@@ -109,18 +109,15 @@ struct Return <: Exception
     value::Any
 end
 
-struct NativeCallable
+struct NativeFunction
     arity::Int
     callee::Function
 end
 
-struct LoxCallable
+struct LoxFunction
     declaration::FnStmt
+    closure::Environment
 end
-
-# function arity(lc::LoxCallable)
-#     return length(lc.declaration.params)
-# end
 
 function interpret(statements::Vector{Stmt})
     globals = Environment()
@@ -163,7 +160,7 @@ function interpret(statements::Vector{Stmt})
         end
 
         ctype = typeof(callee)
-        if ctype != LoxCallable && ctype != NativeCallable
+        if ctype != LoxFunction && ctype != NativeFunction
             throw(RuntimeError(expr.paren, "Can only call functions and classes."))
         end
 
@@ -329,7 +326,7 @@ function interpret(statements::Vector{Stmt})
     end
 
     function visit(stmt::FnStmt)
-        fn = LoxCallable(stmt)
+        fn = LoxFunction(stmt, environment)
         defineenv(environment, stmt.name.lexeme, fn)
         return nothing
     end
@@ -365,8 +362,8 @@ function interpret(statements::Vector{Stmt})
     #################
     ## Callables
     #################
-    function call(callable::LoxCallable, args::Vector{Any})
-        env = Environment(globals)
+    function call(callable::LoxFunction, args::Vector{Any})
+        env = Environment(callable.closure)
         for (idx, param) in enumerate(callable.declaration.params)
             defineenv(env, param.lexeme, args[idx])
         end
@@ -382,15 +379,15 @@ function interpret(statements::Vector{Stmt})
         return nothing
     end
 
-    function arity(callable::LoxCallable)
+    function arity(callable::LoxFunction)
         return length(callable.declaration.params)
     end
 
-    function call(callable::NativeCallable, args::Vector{Any})
+    function call(callable::NativeFunction, args::Vector{Any})
         return callable.callee(args)
     end
 
-    function arity(callable::NativeCallable)
+    function arity(callable::NativeFunction)
         return callable.arity
     end
 
@@ -399,7 +396,7 @@ function interpret(statements::Vector{Stmt})
     ######################
 
     ## Setup Global fns
-    defineenv(globals, "clock", NativeCallable(0, time))
+    defineenv(globals, "clock", NativeFunction(0, time))
 
     ## Main logic
     try
