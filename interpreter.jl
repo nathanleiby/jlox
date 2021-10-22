@@ -84,6 +84,11 @@ struct PrintStmt <: Stmt
     expression::LoxExpr
 end
 
+struct ReturnStmt <: Stmt
+    keyword::Token
+    value::Union{LoxExpr,Nothing}
+end
+
 struct VarStmt <: Stmt
     name::Token
     initializer::Union{LoxExpr,Nothing}
@@ -98,6 +103,10 @@ end
 struct RuntimeError  <: Exception
     token::Token
     details::String
+end
+
+struct Return <: Exception
+    value::Any
 end
 
 struct NativeCallable
@@ -325,6 +334,18 @@ function interpret(statements::Vector{Stmt})
         return nothing
     end
 
+    function visit(stmt::ReturnStmt)
+        value = nothing
+        if stmt.value !== nothing
+            value = evaluate(stmt.value)
+        end
+
+        # When we execute a return statement, we’ll use an exception to unwind
+        # the interpreter past the visit methods of all of the containing
+        # statements back to the code that began executing the body.
+        throw(Return(value))
+    end
+
     # TODO: This was the core logic before -- could we call there too?
     function executeBlock(statements::Vector{Stmt}, env::Environment)
         previous = environment
@@ -350,7 +371,14 @@ function interpret(statements::Vector{Stmt})
             defineenv(env, param.lexeme, args[idx])
         end
 
-        executeBlock(callable.declaration.body, env)
+        try
+            executeBlock(callable.declaration.body, env)
+        catch executeException
+            if isa(executeException, Return)
+                return executeException.value
+            end
+            throw(executeException)
+        end
         return nothing
     end
 

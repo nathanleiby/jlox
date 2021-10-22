@@ -254,6 +254,8 @@ function parseTokens(tokens)::Vector{Stmt}
             return forStatement()
         elseif match(PRINT)
             return printStatement()
+        elseif match(RETURN)
+            return returnStatement()
         elseif match(WHILE)
             return whileStatement()
         elseif match(LEFT_BRACE)
@@ -371,6 +373,17 @@ function parseTokens(tokens)::Vector{Stmt}
         value = expression()
         consume(SEMICOLON, "Expect ';' after value.")
         return PrintStmt(value)
+    end
+
+    function returnStatement()
+        keyword = previous()
+        value = nothing
+        if !check(SEMICOLON)
+            value = expression()
+        end
+
+        consume(SEMICOLON, "Expect ';' after return value.")
+        return ReturnStmt(keyword, value)
     end
 
     function expressionStatement()
