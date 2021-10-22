@@ -18,6 +18,12 @@ struct Binary <: LoxExpr
     right::LoxExpr
 end
 
+struct Call <: LoxExpr
+    callee::LoxExpr
+    paren::Token
+    arguments::Vector{LoxExpr}
+end
+
 struct Grouping <: LoxExpr
     expression::LoxExpr
 end
@@ -112,6 +118,24 @@ function interpret(statements::Vector{Stmt})
         end
 
         throw("unreachable")
+    end
+
+    function visit(expr::Call)
+        callee = evaluate(expr.callee)
+        args = []
+        for arg in expr.arguments
+            push!(args, evaluate(arg))
+        end
+
+        if typeof(callee) != LoxFn
+            throw(RuntimeError(expr.paren, "Can only call functions and classes."))
+        end
+
+        if length(args) != arity(callee)
+            throw(RuntimeError(expr.paren, "Expected $(callee.arity) arguments but got $(length(args))."))
+        end
+
+        return call(loxfn, args)
     end
 
     function visit(var::Variable)

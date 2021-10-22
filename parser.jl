@@ -150,7 +150,45 @@ function parseTokens(tokens)::Vector{Stmt}
             return Unary(op, right)
         end
 
-        return primary()
+        return call()
+    end
+
+    function call()::LoxExpr
+        expr = primary()
+
+        while true
+            if match(LEFT_PAREN)
+                expr = finishCall(expr)
+            # elseif match(DOT)
+            #     name = consume(IDENTIFIER, "Expect property name after '.'.")
+            #     expr = Get(expr, name)
+            else
+                break
+            end
+        end
+
+        return expr
+    end
+
+    function finishCall()::LoxExpr
+        args = []
+
+        if !check(RIGHT_PAREN)
+            while true
+                if length(args) > 255
+                    error(peek(), "Cannot have more than 255 arguments.")
+                end
+
+                args.push(expression())
+
+                if !match(COMMA)
+                    break
+                end
+            end
+        end
+
+        paren = consume(RIGHT_PAREN, "Expect ')' after arguments.")
+        return Call(expr, paren, args)
     end
 
     function primary()::LoxExpr
