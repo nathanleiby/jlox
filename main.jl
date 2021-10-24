@@ -5,6 +5,7 @@ include("./interpreter.jl")
 include("./expressions.jl")
 include("./errors.jl")
 include("./debug.jl")
+include("./resolver.jl")
 
 function main()
     if length(ARGS) > 1
@@ -48,8 +49,13 @@ function run(source::String)
     # TODO:
     # if (hadError) return;
 
+    locals = resolveStatements(statements)
+
+    # TODO:
+    # if (hadError) return;
+
     # print(expr)
-    interpret(statements)
+    interpret(statements, locals)
 
     # TODO: AstPrinter
     # System.out.println(new AstPrinter().print(expression));

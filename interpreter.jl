@@ -3,7 +3,7 @@ include("./environment.jl")
 include("./token.jl")
 include("./types.jl")
 
-function interpret(statements::Vector{Stmt})
+function interpret(statements::Vector{Stmt}, locals::Dict)
     globals = Environment()
     environment = globals
 
@@ -55,13 +55,27 @@ function interpret(statements::Vector{Stmt})
         return call(callee, args)
     end
 
-    function visit(var::Variable)
-        return get(environment, var.name)
+    function visit(expr::Variable)
+        return lookupVariable(expr.name, expr)
+    end
+
+    function lookupVariable(name::Token, expr::LoxExpr)
+        distance = get(locals, expr, nothing)
+        if distance !== nothing
+            return getat(environment, distance, name)
+        end
+
     end
 
     function visit(expr::Assign)
         value = evaluate(expr.value)
-        assignenv(environment, expr.name, value)
+        distance = get(locals, expr)
+        if distance !== nothing
+            assignAt(environment, distance, expr.name, value)
+        else
+            assignenv(globals, expr.name, value)
+        end
+
         return value
     end
 

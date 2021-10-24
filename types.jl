@@ -1,6 +1,8 @@
 abstract type LoxExpr end
 abstract type Stmt end
 
+## TODO: Add Expr or Stmt to end of all types, for clarity
+
 ## expression types ##
 
 struct Assign <: LoxExpr

@@ -45,3 +45,18 @@ function Base.get(env::Union{Environment,Nothing}, name::Token)
 
     throw(RuntimeError(name, "Undefined variable '$(name.lexeme)'."))
 end
+
+function getat(env::Environment, distance::Integer, name::Token)
+    return ancestor(env, distance).Values[name.lexeme]
+end
+
+function assignAt(env::Environment, distance::Integer, name::Token, value::Any)
+    ancestor(env, distance).Values.put(name.lexeme, value);
+end
+
+function ancestor(env::Environment, distance::Integer)
+    if distance == 0
+        return env
+    end
+    return ancestor(env.Enclosing, distance - 1)
+end
