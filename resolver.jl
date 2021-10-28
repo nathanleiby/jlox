@@ -69,10 +69,13 @@ function resolveStatements(ss::Vector{Stmt})::Dict
     end
 
     function resolveLocal(expr::LoxExpr, name::Token)
-        for i in reverse(1:length(scopes) - 1)
+        for i in reverse(1:length(scopes))
             scope = scopes[i]
+            q("scopes[$(i)] = $scope")
             if haskey(scope, name.lexeme)
-                resolve(expr, length(scopes) - 1 - i)
+                distance = length(scopes) - i
+                q("resolving with dis=$distance")
+                resolve(expr, distance)
                 return
             end
         end
@@ -145,7 +148,7 @@ function resolveStatements(ss::Vector{Stmt})::Dict
 
     function visit(expr::Call)
         resolve(expr.callee)
-        for arg in expr.args
+        for arg in expr.arguments
             resolve(arg)
         end
         return nothing
@@ -193,6 +196,8 @@ function resolveStatements(ss::Vector{Stmt})::Dict
     # main logic
     ##############
     resolve(ss)
+
+    q("Locals = $locals")
 
     return locals
 end

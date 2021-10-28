@@ -44,17 +44,23 @@ function run(source::String)
     #     println(t)
     # end
 
+    q("==>> Stage 1: Parse <<==")
     statements = parseTokens(tokens)
 
     # TODO:
     # if (hadError) return;
+    for s in statements
+        q(s)
+    end
 
+    q("==>> Stage 2: Resolve <<==")
     locals = resolveStatements(statements)
 
     # TODO:
     # if (hadError) return;
 
     # print(expr)
+    q("==>> Stage 3: Interpret <<==")
     interpret(statements, locals)
 
     # TODO: AstPrinter

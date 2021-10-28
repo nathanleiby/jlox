@@ -26,12 +26,12 @@ function assignenv(env::Environment, name::Token, value)
         return
     end
 
-    if env.Enclosing !== nothing
-        assignenv(env.Enclosing, name, value)
-        return
-    end
+    # if env.Enclosing !== nothing
+    #     assignenv(env.Enclosing, name, value)
+    #     return
+    # end
 
-    throw(RuntimeError(name, "Undefined variable '$(name.lexeme)'."))
+    throw(RuntimeError(name, "Cannot assign to undefined variable '$(name.lexeme)'."))
 end
 
 function Base.get(env::Union{Environment,Nothing}, name::Token)
@@ -39,19 +39,20 @@ function Base.get(env::Union{Environment,Nothing}, name::Token)
         return env.Values[name.lexeme]
     end
 
-    if env.Enclosing !== nothing
-        return get(env.Enclosing, name)
-    end
+    # if env.Enclosing !== nothing
+    #     return get(env.Enclosing, name)
+    # end
 
-    throw(RuntimeError(name, "Undefined variable '$(name.lexeme)'."))
+    throw(RuntimeError(name, "Cannot get undefined variable '$(name.lexeme)'."))
 end
 
 function getat(env::Environment, distance::Integer, name::Token)
+    q("Looking for '$(name)' with distance=$distance")
     return ancestor(env, distance).Values[name.lexeme]
 end
 
 function assignAt(env::Environment, distance::Integer, name::Token, value::Any)
-    ancestor(env, distance).Values.put(name.lexeme, value);
+    return ancestor(env, distance).Values[name.lexeme] = value
 end
 
 function ancestor(env::Environment, distance::Integer)

@@ -12,10 +12,12 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
     #################
 
     function evaluate(expr::LoxExpr)
+        q("Evaluate: $expr")
         visit(expr)
     end
 
     function visit(literal::Literal)
+        q("Visit literal: $literal")
         return literal.value
     end
 
@@ -37,7 +39,9 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
     end
 
     function visit(expr::Call)
+        q("expr= $expr")
         callee = evaluate(expr.callee)
+        q("callee = $callee")
         args = []
         for arg in expr.arguments
             push!(args, evaluate(arg))
@@ -45,6 +49,7 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
 
         ctype = typeof(callee)
         if ctype != LoxFunction && ctype != NativeFunction
+            q("ctype = $ctype")
             throw(RuntimeError(expr.paren, "Can only call functions and classes."))
         end
 
@@ -62,14 +67,17 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
     function lookupVariable(name::Token, expr::LoxExpr)
         distance = get(locals, expr, nothing)
         if distance !== nothing
+            # get from locals
             return getat(environment, distance, name)
         end
 
+        # get from globals
+        return get(globals, name)
     end
 
     function visit(expr::Assign)
         value = evaluate(expr.value)
-        distance = get(locals, expr)
+        distance = get(locals, expr, nothing)
         if distance !== nothing
             assignAt(environment, distance, expr.name, value)
         else
