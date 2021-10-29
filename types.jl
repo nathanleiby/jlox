@@ -72,6 +72,11 @@ mutable struct FnStmt <: Stmt
     body::Vector{Stmt}
 end
 
+mutable struct ClassStmt <: Stmt
+    name::Token
+    methods::Vector{FnStmt}
+end
+
 mutable struct IfStmt <: Stmt
     condition::LoxExpr
     thenBranch::Stmt
@@ -115,4 +120,8 @@ end
 struct LoxFunction
     declaration::FnStmt
     closure::Environment
+end
+
+struct LoxClass
+    name::String
 end

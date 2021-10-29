@@ -271,6 +271,9 @@ function parseTokens(tokens)::Vector{Stmt}
             if match(FUN)
                 return functionDeclaration("function")
             end
+            if match(CLASS)
+                return classDeclaration()
+            end
             if match(VAR)
                 return varDeclaration()
             end
@@ -419,6 +422,20 @@ function parseTokens(tokens)::Vector{Stmt}
         body = blockStatement()
 
         return FnStmt(name, params, body.statements)
+    end
+
+    function classDeclaration()
+        name = consume(IDENTIFIER, "Expect class name.")
+        consume(LEFT_BRACE, "Expect '{' before class body.")
+
+        methods = []
+        while !check(RIGHT_BRACE) && !isAtEnd()
+            push!(methods, functionDeclaration("method"))
+        end
+
+        consume(RIGHT_BRACE, "Expect '}' after class body.")
+
+        return ClassStmt(name, methods)
     end
 
     function varDeclaration()

@@ -97,6 +97,13 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
     
     ## visit() methods for Stmt's
 
+    function visit(stmt::ClassStmt)
+        # 2-step process allows locals
+        declare(stmt.name)
+        define(stmt.name)
+        return nothing
+    end
+    
     function visit(expr::Assign)
         resolve(expr.value)
         resolveLocal(expr, expr.name)

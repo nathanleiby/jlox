@@ -182,6 +182,12 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
         visit(stmt)
     end
 
+    function visit(stmt::ClassStmt)
+        defineenv(environment, stmt.name, nothing)
+        klass = LoxClass(stmt.name.lexeme)
+        assignenv(environment, stmt.name, klass)
+    end
+
     function visit(stmt::ExpressionStmt)
         evaluate(stmt.expression)
         return nothing
@@ -194,6 +200,8 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
             if obj - floor(obj) == 0
                 return Integer(floor(obj))
             end
+        elseif isa(obj, LoxClass)
+            return obj.name
         end
 
         return obj
