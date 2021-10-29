@@ -1,6 +1,6 @@
 function resolveStatements(ss::Vector{Stmt})::Dict
     scopes = [] # TODO: use an explicit Stack
-    locals = Dict{LoxExpr,Integer}()
+    locals = Dict{Ptr,Integer}()
 
     ##############
     # helpers
@@ -59,7 +59,6 @@ function resolveStatements(ss::Vector{Stmt})::Dict
     end
 
     function visit(expr::Variable)
-        # TODO
         if length(scopes) > 0 && get(peekScope(), expr.name.lexeme, nothing) === false
             error("Can't read local variable in its own initializer.")
         end
@@ -189,15 +188,17 @@ function resolveStatements(ss::Vector{Stmt})::Dict
     end
 
     function resolve(expr::LoxExpr, depth::Integer)
-        locals[expr] = depth
+        # needs to be an *exact* object equality (===, not just struct equality in Julia)
+        # 1. use a pointer
+        # 2. the structs themselves must be mutable, else pointer_from_objref doesn't work)
+        ptr = pointer_from_objref(expr)
+        locals[ptr] = depth
     end
 
     ##############
     # main logic
     ##############
     resolve(ss)
-
-    q("Locals = $locals")
 
     return locals
 end

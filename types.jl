@@ -5,94 +5,94 @@ abstract type Stmt end
 
 ## expression types ##
 
-struct Assign <: LoxExpr
+mutable struct Assign <: LoxExpr
     name::Token
     value::LoxExpr
 end
 
-struct Binary <: LoxExpr
+mutable struct Binary <: LoxExpr
     left::LoxExpr
     operator::Token
     right::LoxExpr
 end
 
-struct Call <: LoxExpr
+mutable struct Call <: LoxExpr
     callee::LoxExpr
     paren::Token
     arguments::Vector{LoxExpr}
 end
 
-struct FnExpr <: LoxExpr
+mutable struct FnExpr <: LoxExpr
     name::Token
     params::Vector{Token}
     body::Vector{Stmt}
 end
 
-struct Grouping <: LoxExpr
+mutable struct Grouping <: LoxExpr
     expression::LoxExpr
 end
 
-struct Literal <: LoxExpr
+mutable struct Literal <: LoxExpr
     value::Any
 end
 
-struct Unary <: LoxExpr
+mutable struct Unary <: LoxExpr
     operator::Token
     right::LoxExpr
 end
 
 
-struct Logical <: LoxExpr
+mutable struct Logical <: LoxExpr
     left::LoxExpr
     operator::Token
     right::LoxExpr
 end
 
-struct Variable <: LoxExpr
+mutable struct Variable <: LoxExpr
     name::Token
 end
 
-struct Block <: LoxExpr
+mutable struct Block <: LoxExpr
     statements::Vector{Stmt}
 end
 
 ## statement types ##
 
-struct BlockStmt <: Stmt
+mutable struct BlockStmt <: Stmt
     statements::Vector{Stmt}
 end
 
-struct ExpressionStmt <: Stmt
+mutable struct ExpressionStmt <: Stmt
     expression::LoxExpr
 end
 
-struct FnStmt <: Stmt
+mutable struct FnStmt <: Stmt
     name::Token
     params::Vector{Token}
     body::Vector{Stmt}
 end
 
-struct IfStmt <: Stmt
+mutable struct IfStmt <: Stmt
     condition::LoxExpr
     thenBranch::Stmt
     elseBranch::Union{Stmt,Nothing}
 end
 
-struct PrintStmt <: Stmt
+mutable struct PrintStmt <: Stmt
     expression::LoxExpr
 end
 
-struct ReturnStmt <: Stmt
+mutable struct ReturnStmt <: Stmt
     keyword::Token
     value::Union{LoxExpr,Nothing}
 end
 
-struct VarStmt <: Stmt
+mutable struct VarStmt <: Stmt
     name::Token
     initializer::Union{LoxExpr,Nothing}
 end
 
-struct WhileStmt <: Stmt
+mutable struct WhileStmt <: Stmt
     condition::LoxExpr
     body::Stmt
 end

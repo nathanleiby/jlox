@@ -65,7 +65,7 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
     end
 
     function lookupVariable(name::Token, expr::LoxExpr)
-        distance = get(locals, expr, nothing)
+        distance = get(locals, pointer_from_objref(expr), nothing)
         if distance !== nothing
             # get from locals
             return getat(environment, distance, name)
@@ -77,7 +77,8 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
 
     function visit(expr::Assign)
         value = evaluate(expr.value)
-        distance = get(locals, expr, nothing)
+
+        distance = get(locals, pointer_from_objref(expr), nothing)
         if distance !== nothing
             assignAt(environment, distance, expr.name, value)
         else

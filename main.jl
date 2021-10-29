@@ -55,6 +55,7 @@ function run(source::String)
 
     q("==>> Stage 2: Resolve <<==")
     locals = resolveStatements(statements)
+    q(locals)
 
     # TODO:
     # if (hadError) return;

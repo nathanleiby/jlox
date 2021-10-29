@@ -1,9 +1,10 @@
 using JSON
 
-SHOW_DEBUG = true
+# SHOW_DEBUG = true
+SHOW_DEBUG = false
 
 function q(a::Dict)
-    if !SHOW_DEBUG then
+    if !SHOW_DEBUG
         return
     end
 
@@ -15,7 +16,7 @@ function q(a::Dict)
 end
 
 function q(a...)
-    if !SHOW_DEBUG then
+    if !SHOW_DEBUG
         return
     end
     println("[q]", a...)
