@@ -54,11 +54,12 @@ function run(source::String)
     end
 
     q("==>> Stage 2: Resolve <<==")
-    locals = resolveStatements(statements)
+    locals, resolveError = resolveStatements(statements)
     q(locals)
 
-    # TODO:
-    # if (hadError) return;
+    if resolveError
+        return
+    end
 
     # print(expr)
     q("==>> Stage 3: Interpret <<==")
