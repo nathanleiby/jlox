@@ -122,6 +122,10 @@ struct LoxFunction
     closure::Environment
 end
 
-struct LoxClass
+mutable struct LoxClass
     name::String
+end
+
+mutable struct LoxInstance
+    klass::LoxClass
 end

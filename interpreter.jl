@@ -48,7 +48,7 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
         end
 
         ctype = typeof(callee)
-        if ctype != LoxFunction && ctype != NativeFunction
+        if ctype != LoxFunction && ctype != NativeFunction && ctype != LoxClass
             q("ctype = $ctype")
             throw(RuntimeError(expr.paren, "Can only call functions and classes."))
         end
@@ -202,6 +202,8 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
             end
         elseif isa(obj, LoxClass)
             return obj.name
+        elseif isa(obj, LoxInstance)
+            return "$(obj.klass.name) instance"
         end
 
         return obj
@@ -209,7 +211,7 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
 
     function visit(stmt::PrintStmt)
         value = evaluate(stmt.expression)
-        println(stringify(value));
+        println(stringify(value))
         return nothing
     end
 
@@ -304,6 +306,15 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
 
     function arity(callable::NativeFunction)
         return callable.arity
+    end
+
+    function call(callable::LoxClass, args::Vector{Any})
+        return LoxInstance(callable)
+    end
+
+    function arity(_::LoxClass)
+        # we don't yet allow args to constructor
+        return 0
     end
 
     ######################
