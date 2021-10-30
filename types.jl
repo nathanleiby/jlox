@@ -137,6 +137,7 @@ end
 
 mutable struct LoxClass
     name::String
+    methods::Dict{String,LoxFunction}
 end
 
 mutable struct LoxInstance
@@ -150,5 +151,16 @@ function Base.get(instance::LoxInstance, name::Token)
         return instance.fields[key]
     end
 
+    m = get(instance.klass.methods, key, nothing)
+    if m !== nothing
+        return m
+    end
+
     throw(RuntimeError(name, "Undefined property '$key'."))
+end
+
+@enum FunctionType begin
+    NONE
+    FUNCTION
+    METHOD
 end

@@ -204,7 +204,13 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
 
     function visit(stmt::ClassStmt)
         defineenv(environment, stmt.name, nothing)
-        klass = LoxClass(stmt.name.lexeme)
+        methods = Dict{String,LoxFunction}()
+        for m in stmt.methods
+            fn = LoxFunction(m, environment)
+            methods[m.name.lexeme] = fn
+        end
+
+        klass = LoxClass(stmt.name.lexeme, methods)
         assignenv(environment, stmt.name, klass)
     end
 
