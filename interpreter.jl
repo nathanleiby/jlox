@@ -21,6 +21,26 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
         return literal.value
     end
 
+    function visit(expr::GetExpr)
+        obj = evaluate(expr.object)
+        if isa(obj, LoxInstance)
+            return get(obj, expr.name)
+        end
+
+        throw(RuntimeError(expr.name, "Only instances have properties"))
+    end
+
+    function visit(expr::SetExpr)
+        obj = evaluate(expr.object)
+        if ! isa(obj, LoxInstance)
+            throw(RuntimeError(expr.name, "Only instances have fields"))
+        end
+
+        val = evaluate(expr.value)
+        obj.fields[expr.name.lexeme] = val
+        return val
+    end
+
     function visit(group::Grouping)
         return evaluate(group.expression)
     end
@@ -309,7 +329,7 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
     end
 
     function call(callable::LoxClass, args::Vector{Any})
-        return LoxInstance(callable)
+        return LoxInstance(callable, Dict{String,Any}())
     end
 
     function arity(_::LoxClass)

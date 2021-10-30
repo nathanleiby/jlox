@@ -64,9 +64,13 @@ function parseTokens(tokens)::Vector{Stmt}
             if isa(expr, Variable)
                 name = expr.name
                 return Assign(name, value)
+            elseif isa(expr, GetExpr)
+                object = expr.object
+                name = expr.name
+                return SetExpr(object, name, value)
+            else
+                error(equals, "Invalid assignment target.")
             end
-
-            error(equals, "Invalid assignment target.")
         end
 
         return expr
@@ -159,6 +163,9 @@ function parseTokens(tokens)::Vector{Stmt}
         while true
             if match(LEFT_PAREN)
                 expr = finishCall(expr)
+            elseif match(DOT)
+                name = consume(IDENTIFIER, "Expect property name after '.'.")
+                expr = GetExpr(expr, name)
             else
                 break
             end

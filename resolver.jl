@@ -204,6 +204,18 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
         return nothing
     end
     
+    function visit(expr::GetExpr)
+        resolve(expr.object)
+        return nothing
+    end
+    
+    function visit(expr::SetExpr)
+        resolve(expr.value) # value being set to
+        resolve(expr.object) # object we're setting a field on
+        return nothing
+    end
+    
+    ## resolve() methods
     function resolve(statements::Vector{Stmt})
         for s in statements
             resolve(s)

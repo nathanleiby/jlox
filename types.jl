@@ -28,6 +28,19 @@ mutable struct FnExpr <: LoxExpr
     body::Vector{Stmt}
 end
 
+# GetExpr gets a field from an instance of a class
+mutable struct GetExpr <: LoxExpr
+    object::LoxExpr
+    name::Token
+end
+
+# SetExpr sets a field on an instance of a class
+mutable struct SetExpr <: LoxExpr
+    object::LoxExpr
+    name::Token
+    value::LoxExpr
+end
+
 mutable struct Grouping <: LoxExpr
     expression::LoxExpr
 end
@@ -128,4 +141,14 @@ end
 
 mutable struct LoxInstance
     klass::LoxClass
+    fields::Dict{String,Any}
+end
+
+function Base.get(instance::LoxInstance, name::Token)
+    key = name.lexeme
+    if haskey(instance.fields, key)
+        return instance.fields[key]
+    end
+
+    throw(RuntimeError(name, "Undefined property '$key'."))
 end

@@ -1,0 +1,12 @@
+class Hello {}
+var h = Hello();
+
+h.x = "hello";
+print h.x;
+h.x = 55;
+print h.x;
+
+// Nested classes
+h.y = Hello();
+h.y.z = "nested";
+print h.y.z;
