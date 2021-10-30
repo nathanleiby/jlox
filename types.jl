@@ -158,13 +158,30 @@ function Base.get(instance::LoxInstance, name::Token)
         return instance.fields[key]
     end
 
-    method = get(instance.klass.methods, key, nothing)
+    method = findMethod(instance.klass, key)
     if method !== nothing
         boundMethod = bind(method, instance)
         return boundMethod
     end
 
     throw(RuntimeError(name, "Undefined property '$key'."))
+end
+
+function findMethod(klass::LoxClass, name::String)
+    m = get(klass.methods, name, nothing)
+    if m !== nothing
+        return m
+    end
+
+    if klass.superclass !== nothing
+        return findMethod(klass.superclass, name)
+    end
+
+    return nothing
+end
+
+function findMethod(klass::LoxClass, name::Token)
+    return findMethod(klass, name.lexeme)
 end
 
 function bind(f::LoxFunction, instance::LoxInstance)

@@ -357,7 +357,7 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
 
     function call(callable::LoxClass, args::Vector{Any})
         instance = LoxInstance(callable, Dict{String,Any}())
-        initializer = get(callable.methods, "init", nothing)
+        initializer = findMethod(callable, "init")
         if initializer !== nothing
             boundMethod = bind(initializer, instance)
             call(boundMethod, args)
@@ -366,7 +366,7 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
     end
 
     function arity(callable::LoxClass)
-        initializer = get(callable.methods, "init", nothing)
+        initializer = findMethod(callable, "init")
         if initializer !== nothing
             return arity(initializer)
         end
