@@ -215,6 +215,12 @@ function parseTokens(tokens)::Vector{Stmt}
             expr = expression()
             consume(RIGHT_PAREN, "Expect ')' after expression.")
             return Grouping(expr)
+        # superclass
+        elseif match(SUPER)
+            keyword = previous()
+            consume(DOT, "Expect '.' after 'super'.")
+            method = consume(IDENTIFIER, "Expect superclass method name.")
+            return SuperExpr(keyword, method)
         end
 
         error(peek(), "Expect expression.")

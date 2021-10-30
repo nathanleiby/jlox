@@ -91,6 +91,17 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
         end
     end
 
+    function visit(expr::SuperExpr)
+        if currentClassType == CLASSTYPE_NONE
+            error("Cannot use 'super' outside of a class.")
+        elseif currentClassType != CLASSTYPE_SUBCLASS
+            error("Cannot use 'super' in a class with no superclass.")
+        end
+
+        resolveLocal(expr, expr.keyword)
+        return nothing
+    end
+
     ## visit() methods for Stmt's
 
     function visit(stmt::ClassStmt)
@@ -106,7 +117,13 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
         end
 
         if stmt.superclass !== nothing
+            currentClassType = CLASSTYPE_SUBCLASS
             resolve(stmt.superclass)
+        end
+
+        if (stmt.superclass !== nothing)
+            beginScope()
+            peekScope()["super"] = true
         end
 
         beginScope()
@@ -118,6 +135,10 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
         end
 
         endScope()
+
+        if (stmt.superclass !== nothing)
+            endScope()
+        end
 
         currentClassType = enclosingClassType
 

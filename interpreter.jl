@@ -95,6 +95,18 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
         return get(globals, name)
     end
 
+    function visit(expr::SuperExpr)
+        distance = get(locals, pointer_from_objref(expr), nothing)
+        superclass = getat(environment, distance, "super")
+        instance = getat(environment, distance - 1, "this")
+
+        method = findMethod(superclass, expr.method.lexeme)
+        if method === nothing
+            throw(RuntimeError(expr.method, "Undefined property '$(expr.method.lexeme)'."))
+        end
+        return bind(method, instance)
+    end
+
     function visit(expr::Assign)
         value = evaluate(expr.value)
 
@@ -216,6 +228,12 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
         end
 
         defineenv(environment, stmt.name, nothing)
+
+        if stmt.superclass !== nothing
+            environment = Environment(environment)
+            defineenv(environment, "super", superclass)
+        end
+
         methods = Dict{String,LoxFunction}()
         for m in stmt.methods
             isInitializer = m.name.lexeme == "init"
@@ -224,6 +242,11 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
         end
 
         klass = LoxClass(stmt.name.lexeme, superclass, methods)
+
+        if stmt.superclass !== nothing
+            environment = environment.Enclosing
+        end
+
         assignenv(environment, stmt.name, klass)
     end
 

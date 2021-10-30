@@ -73,6 +73,11 @@ mutable struct Block <: LoxExpr
     statements::Vector{Stmt}
 end
 
+mutable struct SuperExpr <: LoxExpr
+    keyword::Token
+    method::Token
+end
+
 ## statement types ##
 
 mutable struct BlockStmt <: Stmt
@@ -200,4 +205,5 @@ end
 @enum ClassType begin
     CLASSTYPE_NONE
     CLASSTYPE_CLASS
+    CLASSTYPE_SUBCLASS
 end
