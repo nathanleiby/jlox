@@ -101,6 +101,14 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
         declare(stmt.name)
         define(stmt.name)
 
+        if stmt.superclass !== nothing && stmt.name.lexeme == stmt.superclass.name.lexeme
+            error("A class cannot inherit from itself ($(stmt.superclass.name)).")
+        end
+
+        if stmt.superclass !== nothing
+            resolve(stmt.superclass)
+        end
+
         beginScope()
         peekScope()["this"] = true
 

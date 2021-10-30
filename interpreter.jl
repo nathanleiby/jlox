@@ -207,6 +207,14 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
     end
 
     function visit(stmt::ClassStmt)
+        superclass = nothing
+        if stmt.superclass !== nothing
+            superclass = evaluate(stmt.superclass)
+            if ! isa(superclass, LoxClass)
+                throw(RuntimeError(stmt.superclass.name, "Superclass must be a class."))
+            end
+        end
+
         defineenv(environment, stmt.name, nothing)
         methods = Dict{String,LoxFunction}()
         for m in stmt.methods
@@ -215,7 +223,7 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
             methods[m.name.lexeme] = fn
         end
 
-        klass = LoxClass(stmt.name.lexeme, methods)
+        klass = LoxClass(stmt.name.lexeme, superclass, methods)
         assignenv(environment, stmt.name, klass)
     end
 

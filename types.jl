@@ -91,6 +91,7 @@ end
 
 mutable struct ClassStmt <: Stmt
     name::Token
+    superclass::Union{Variable,Nothing}
     methods::Vector{FnStmt}
 end
 
@@ -142,6 +143,7 @@ end
 
 mutable struct LoxClass
     name::String
+    superclass::Union{LoxClass,Nothing}
     methods::Dict{String,LoxFunction}
 end
 

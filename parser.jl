@@ -435,6 +435,14 @@ function parseTokens(tokens)::Vector{Stmt}
 
     function classDeclaration()
         name = consume(IDENTIFIER, "Expect class name.")
+
+        # optionally, a superclass
+        superclass = nothing
+        if match(LESS)
+            consume(IDENTIFIER, "Expect superclass name.")
+            superclass = Variable(previous())
+        end
+
         consume(LEFT_BRACE, "Expect '{' before class body.")
 
         methods = []
@@ -444,7 +452,7 @@ function parseTokens(tokens)::Vector{Stmt}
 
         consume(RIGHT_BRACE, "Expect '}' after class body.")
 
-        return ClassStmt(name, methods)
+        return ClassStmt(name, superclass, methods)
     end
 
     function varDeclaration()
