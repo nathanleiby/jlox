@@ -409,6 +409,11 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
             execute(s)
         end
     catch e
-        throw(e) # TODO: hadRuntimeError
+        if isa(e, RuntimeError)
+            println("$(e.details)\n[line $(e.token.line)]")
+            exit(70)
+        else
+            throw(e)
+        end
     end
 end
