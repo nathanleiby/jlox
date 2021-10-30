@@ -137,6 +137,7 @@ end
 struct LoxFunction
     declaration::FnStmt
     closure::Environment
+    isInitializer::Bool
 end
 
 mutable struct LoxClass
@@ -167,12 +168,13 @@ end
 function bind(f::LoxFunction, instance::LoxInstance)
     env = Environment(f.closure)
     defineenv(env, "this", instance)
-    return LoxFunction(f.declaration, env)
+    return LoxFunction(f.declaration, env, f.isInitializer)
 end
 
 @enum FunctionType begin
     NONE
     FUNCTION
+    INITIALIZER
     METHOD
 end
 

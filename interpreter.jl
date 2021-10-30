@@ -210,7 +210,8 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
         defineenv(environment, stmt.name, nothing)
         methods = Dict{String,LoxFunction}()
         for m in stmt.methods
-            fn = LoxFunction(m, environment)
+            isInitializer = m.name.lexeme == "init"
+            fn = LoxFunction(m, environment, isInitializer)
             methods[m.name.lexeme] = fn
         end
 
@@ -273,7 +274,7 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
     end
 
     function visit(stmt::FnStmt)
-        fn = LoxFunction(stmt, environment)
+        fn = LoxFunction(stmt, environment, false)
         defineenv(environment, stmt.name.lexeme, fn)
         return nothing
     end
@@ -319,9 +320,17 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
             executeBlock(callable.declaration.body, env)
         catch executeException
             if isa(executeException, Return)
+                if (callable.isInitializer)
+                    return getat(callable.closure, 0, "this")
+                end
                 return executeException.value
             end
             throw(executeException)
+        end
+
+        if callable.isInitializer
+            # `init()` always returns `this`
+            return getat(callable.closure, 0, "this")
         end
         return nothing
     end
@@ -339,11 +348,20 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
     end
 
     function call(callable::LoxClass, args::Vector{Any})
-        return LoxInstance(callable, Dict{String,Any}())
+        instance = LoxInstance(callable, Dict{String,Any}())
+        initializer = get(callable.methods, "init", nothing)
+        if initializer !== nothing
+            boundMethod = bind(initializer, instance)
+            call(boundMethod, args)
+        end
+    return instance
     end
 
-    function arity(_::LoxClass)
-        # we don't yet allow args to constructor
+    function arity(callable::LoxClass)
+        initializer = get(callable.methods, "init", nothing)
+        if initializer !== nothing
+            return arity(initializer)
+        end
         return 0
     end
 

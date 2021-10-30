@@ -105,7 +105,8 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
         peekScope()["this"] = true
 
         for m in stmt.methods
-            resolveFunction(m, METHOD)
+            declaration = m.name.lexeme == "init" ? INITIALIZER : METHOD
+            resolveFunction(m, declaration)
         end
 
         endScope()
@@ -169,6 +170,9 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
         end
 
         if stmt.value !== nothing
+            if currentFunctionType == INITIALIZER
+                error("Can't return a value from an initializer.")
+            end
             resolve(stmt.value)
         end
         return nothing
@@ -229,7 +233,7 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
     function visit(expr::ThisExpr)
         if currentClassType == CLASSTYPE_NONE
             error("Can't use 'this' outside of a class.")
-            return nothing
+        return nothing
         end
 
         resolveLocal(expr, expr.keyword)

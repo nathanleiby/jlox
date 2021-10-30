@@ -46,6 +46,11 @@ function Base.get(env::Union{Environment,Nothing}, name::Token)
     throw(RuntimeError(name, "Cannot get undefined variable '$(name.lexeme)'."))
 end
 
+function getat(env::Environment, distance::Integer, name::String)
+    q("Looking for '$(name)' with distance=$distance")
+    return ancestor(env, distance).Values[name]
+end
+
 function getat(env::Environment, distance::Integer, name::Token)
     q("Looking for '$(name)' with distance=$distance")
     return ancestor(env, distance).Values[name.lexeme]

@@ -1,0 +1,9 @@
+class Foo {
+  init() {
+    print this;
+  }
+}
+
+var foo = Foo();
+// `init()` called outside should return `this`
+print foo.init();
