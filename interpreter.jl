@@ -194,6 +194,10 @@ function interpret(statements::Vector{Stmt}, locals::Dict)
         throw(RuntimeError(operator, ""))
     end
 
+    function visit(expr::ThisExpr)
+        return lookupVariable(expr.keyword, expr)
+    end
+
     ################
     ## statements ##
     ################

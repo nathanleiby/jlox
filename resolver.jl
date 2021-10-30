@@ -2,7 +2,8 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
     scopes = [] # TODO: use an explicit Stack
     locals = Dict{Ptr,Integer}()
     hadError = false
-    currentFunctionType = NONE
+    currentFunctionType::FunctionType = NONE
+    currentClassType::ClassType = CLASSTYPE_NONE
 
     ##############
     # helpers
@@ -93,13 +94,23 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
     ## visit() methods for Stmt's
 
     function visit(stmt::ClassStmt)
+        enclosingClassType = currentClassType
+        currentClassType = CLASSTYPE_CLASS
+
         # 2-step process allows locals
         declare(stmt.name)
         define(stmt.name)
 
+        beginScope()
+        peekScope()["this"] = true
+
         for m in stmt.methods
             resolveFunction(m, METHOD)
         end
+
+        endScope()
+
+        currentClassType = enclosingClassType
 
         return nothing
     end
@@ -214,6 +225,17 @@ function resolveStatements(ss::Vector{Stmt})::Tuple{Dict,Bool}
         resolve(expr.object) # object we're setting a field on
         return nothing
     end
+
+    function visit(expr::ThisExpr)
+        if currentClassType == CLASSTYPE_NONE
+            error("Can't use 'this' outside of a class.")
+            return nothing
+        end
+
+        resolveLocal(expr, expr.keyword)
+        return nothing
+    end
+
 
     ## resolve() methods
     function resolve(statements::Vector{Stmt})

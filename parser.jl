@@ -205,6 +205,8 @@ function parseTokens(tokens)::Vector{Stmt}
             return Literal(nothing)
         elseif match(NUMBER, STRING)
             return Literal(previous().literal)
+        elseif match(THIS)
+            return ThisExpr(previous())
         # variable
         elseif match(IDENTIFIER)
             return Variable(previous())

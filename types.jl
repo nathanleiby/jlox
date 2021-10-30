@@ -49,6 +49,10 @@ mutable struct Literal <: LoxExpr
     value::Any
 end
 
+mutable struct ThisExpr <: LoxExpr
+    keyword::Token
+end
+
 mutable struct Unary <: LoxExpr
     operator::Token
     right::LoxExpr
@@ -151,16 +155,28 @@ function Base.get(instance::LoxInstance, name::Token)
         return instance.fields[key]
     end
 
-    m = get(instance.klass.methods, key, nothing)
-    if m !== nothing
-        return m
+    method = get(instance.klass.methods, key, nothing)
+    if method !== nothing
+        boundMethod = bind(method, instance)
+        return boundMethod
     end
 
     throw(RuntimeError(name, "Undefined property '$key'."))
+end
+
+function bind(f::LoxFunction, instance::LoxInstance)
+    env = Environment(f.closure)
+    defineenv(env, "this", instance)
+    return LoxFunction(f.declaration, env)
 end
 
 @enum FunctionType begin
     NONE
     FUNCTION
     METHOD
+end
+
+@enum ClassType begin
+    CLASSTYPE_NONE
+    CLASSTYPE_CLASS
 end
